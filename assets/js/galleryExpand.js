@@ -21,7 +21,7 @@
         defaultColor: '#444', // Fallback color for color thief.
         primaryColor: '', // Primary color that overrides color thief.
         secondaryColor: '', // Secondary color that overrides color thief.
-        fillScreen: false, // Modal to full width background transition style.
+        fillScreen: true, // Modal to full width background transition style.
         dynamicRouting: true, // Add hash id to URL to allow dynamic routing.
       };
       options = $.extend(defaults, options);
