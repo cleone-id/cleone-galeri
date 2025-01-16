@@ -1,10 +1,6 @@
 url: "https://galeri.cleone.id" # the base hostname & protocol for your site, e.g. http://example.com
 baseurl: "/" # the subpath of your site, e.g. /blog
 title: "Galeri Cleone.ID" # the name of your site, e.g. ACME Corp.
-
-github_username: cleone-id
-facebook_username: cleone-id
-linkedin_username: cleone-id
 plugins:
   - jekyll-feed
   - jekyll-sitemap
