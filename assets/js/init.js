@@ -86,22 +86,22 @@
     });
 
 
-    var onShow = function(el) {
-      var carousel = el.find('.carousel.initialized');
-      carousel.carousel({
-        dist: 0,
-        padding: 10
-      });
-    };
-    $('.gallery-expand').galleryExpand({
-      onShow: onShow
-    });
-
-    $('.blog .gallery-expand').galleryExpand({
-      onShow: onShow,
-      fillScreen: true,
-      inDuration: 500,
-    });
+    // var onShow = function(el) {
+    //   var carousel = el.find('.carousel.initialized');
+    //   carousel.carousel({
+    //     dist: 0,
+    //     padding: 10
+    //   });
+    // };
+    // $('.gallery-expand').galleryExpand({
+    //   onShow: onShow
+    // });
+    //
+    // $('.blog .gallery-expand').galleryExpand({
+    //   onShow: onShow,
+    //   fillScreen: true,
+    //   inDuration: 500,
+    // });
 
 	}); // end of document ready
 })(jQuery); // end of jQuery name space
