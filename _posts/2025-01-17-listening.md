@@ -1,9 +1,9 @@
 ---
 id_post: 1
-title: "I'm listening"
+title: "Im listening"
 slug: 'im-listening'
 date: 2020-01-16 00:21:26
-description: 'i'm fine'
+description: 'im fine'
 image: '/assets/images/omeko/fine.webp'
 categories: d2
 owner: 'Om Eko'
