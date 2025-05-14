@@ -21,36 +21,6 @@ title: "Galeri"
         </div>
       </div>
       <div id="randomness">
-        <!-- {% for post in site.posts %}
-        <div id="{{ post.id_post }}-{{ post.slug }}" class="col l4 m6 s12 gallery-item gallery-expand gallery-filter {{ post.categories }}">
-          <div class="gallery-curve-wrapper">
-            <a class="gallery-cover gray">
-                <img class="responsive-img spotlight" src="{{ post.image }}" data-media="image" data-title="{{ post.title }}" data-src="{{ post.image }}" data-description="{{ post.description }} - {{ post.owner }}" alt="placeholder" crossOrigin="anonymous">
-            </a>
-            <div class="gallery-header grey darken-4" style="color: #EAEAEA">
-              <span>{{ post.title }}</span>
-            </div>
-            <div class="gallery-body">
-              <div class="title-wrapper">
-                <h3>{{ post.title }}</h3>
-                <span class="price">{{ post.owner }} - {% include date.html date=post.date %}</span>
-              </div>
-              <div class="description">
-                {{ post.content }}
-              </div>
-              <p class="description">
-                {{ post.owner }}
-              </p>
-              <p class="description">
-                {% include date.html date=post.date %}
-              </p>
-            </div>
-            <div class="gallery-action">
-              <a class="btn-floating btn-large waves-effect waves-light"><i class="material-icons">favorite</i></a>
-            </div>
-          </div>
-        </div>
-      {% endfor %} -->
         <script>
           fetch('https://cdn.cleone.id/gallery.json')
             .then(response => response.json())
@@ -68,7 +38,7 @@ title: "Galeri"
                            data-media="image"
                            data-title="${item.caption}"
                            data-src="${item.url}" 
-                           data-description="- ${item.username}" 
+                           data-description="${item.username}" 
                            alt="cleone-gallery-image" crossOrigin="anonymous">
                   </a>
                   <div class="gallery-header grey darken-4" style="color: #EAEAEA">
@@ -92,10 +62,18 @@ title: "Galeri"
                 container.appendChild(div);
               });
 
-              // Shuffle elements
-              for (var i = container.children.length; i >= 0; i--) {
-                container.appendChild(container.children[Math.random() * i | 0]);
-              }
+              // Tunggu semua gambar selesai di-load
+              const $masonry = $('.gallery');
+              $masonry.imagesLoaded(function () {
+                // Shuffle
+                for (let i = container.children.length; i >= 0; i--) {
+                  container.appendChild(container.children[Math.random() * i | 0]);
+                }
+
+                // Layout ulang masonry
+                $masonry.masonry('reloadItems');
+                $masonry.masonry('layout');
+              });
             })
             .catch(error => console.error("Failed to load gallery:", error));
         </script>
