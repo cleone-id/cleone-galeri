@@ -216,6 +216,19 @@
     }
   }
 </script>
+<script>
+  // Disable right click
+  document.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+  });
+
+  // Disable keyboard copy (Ctrl+C, Ctrl+X)
+  document.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'x' || e.key === 'a')) {
+      e.preventDefault();
+      }
+  });
+</script>
 
 </body>
 
