@@ -21,61 +21,205 @@ title: "Galeri"
         </div>
       </div>
       <div id="randomness">
-        <script>
-          fetch('https://cdn.cleone.id/gallery.json')
-            .then(response => response.json())
-            .then(data => {
-              const container = document.getElementById('randomness');
-
-              data.forEach((item, index) => {
-                const div = document.createElement('div');
-                div.className = `col l4 m6 s12 gallery-item gallery-expand gallery-filter all`;
-                div.innerHTML = `
-                <div class="gallery-curve-wrapper">
-                  <a class="gallery-cover gray">
-                      <img class="responsive-img spotlight" 
-                           src="${item.url}" 
-                           data-media="image"
-                           data-title="${item.caption}"
-                           data-src="${item.url}" 
-                           data-description="${item.username}" 
-                           alt="Galeri Cleone.ID" crossOrigin="anonymous">
-                  </a>
-                  <div class="gallery-header grey darken-4" style="color: #EAEAEA">
-                    <span>${item.caption}</span>
-                  </div>
-                  <div class="gallery-body">
-                    <div class="title-wrapper">
-                      <h3>${item.caption}</h3>
-                      <span class="price">${item.username}</span>
+        <!-- Loading indicator shown when loading more images -->
+        <div id="gallery-loading-indicator" class="center-align" style="display: none; width: 100%; padding: 20px;">
+            <div class="preloader-wrapper small active">
+                <div class="spinner-layer spinner-blue-only">
+                    <div class="circle-clipper left">
+                        <div class="circle"></div>
+                    </div><div class="gap-patch">
+                        <div class="circle"></div>
+                    </div><div class="circle-clipper right">
+                        <div class="circle"></div>
                     </div>
-                    <div class="description">
-                      ${item.caption}
-                    </div>
-                    <p class="description">${item.username}</p>
-                  </div>
-                  <div class="gallery-action">
-                    <a class="btn-floating btn-large waves-effect waves-light"><i class="material-icons">favorite</i></a>
-                  </div>
                 </div>
-              `;
-                container.appendChild(div);
-              });
-
-              // Tunggu semua gambar selesai di-load
-              const $masonry = $('.gallery');
-              $masonry.imagesLoaded(function () {
-                // Shuffle
-                for (let i = container.children.length; i >= 0; i--) {
-                  container.appendChild(container.children[Math.random() * i | 0]);
+            </div>
+            <p>Loading more images...</p>
+        </div>
+        <script>
+            // Global variables for infinite scroll
+            const galleryState = {
+                allImages: [],         // Store all images from the API
+                currentIndex: 0,       // Current position in the allImages array
+                batchSize: 12,         // Number of images to load per batch
+                loading: false,        // Flag to prevent multiple simultaneous loads
+                allLoaded: false,      // Flag to indicate when all images are loaded
+                scrollTriggerPoint: 0.8  // Trigger next load when 80% down the page
+            };
+    
+            // Create and append gallery item elements
+            function appendGalleryItems(items) {
+                const container = document.getElementById('randomness');
+                const loadingIndicator = document.getElementById('gallery-loading-indicator');
+                
+                // Create fragment to minimize DOM operations
+                const fragment = document.createDocumentFragment();
+                
+                items.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = `col l4 m6 s12 gallery-item gallery-expand gallery-filter all`;
+                    div.innerHTML = `
+                    <div class="gallery-curve-wrapper">
+                        <a class="gallery-cover gray">
+                            <img class="responsive-img spotlight" 
+                                 data-src="${item.url}" 
+                                 src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E"
+                                 data-media="image"
+                                 data-title="${item.caption}"
+                                 data-description="${item.username}" 
+                                 alt="Galeri Cleone.ID" crossOrigin="anonymous">
+                        </a>
+                        <div class="gallery-header grey darken-4" style="color: #EAEAEA">
+                            <span>${item.caption}</span>
+                        </div>
+                        <div class="gallery-body">
+                            <div class="title-wrapper">
+                                <h3>${item.caption}</h3>
+                                <span class="price">${item.username}</span>
+                            </div>
+                            <div class="description">
+                                ${item.caption}
+                            </div>
+                            <p class="description">${item.username}</p>
+                        </div>
+                        <div class="gallery-action">
+                            <a class="btn-floating btn-large waves-effect waves-light"><i class="material-icons">favorite</i></a>
+                        </div>
+                    </div>
+                    `;
+                    fragment.appendChild(div);
+                });
+                
+                // Insert the new items before the loading indicator
+                if (loadingIndicator) {
+                    container.insertBefore(fragment, loadingIndicator);
+                } else {
+                    container.appendChild(fragment);
                 }
-
-                // Layout ulang masonry
-                $masonry.masonry('reloadItems');
-                $masonry.masonry('layout');
-              });
-            })
-            .catch(error => console.error("Failed to load gallery:", error));
+                
+                // Setup lazy loading for new images
+                setupLazyLoading();
+                
+                // Update masonry layout
+                const $masonry = $('.gallery');
+                $masonry.imagesLoaded(() => {
+                    $masonry.masonry('reloadItems');
+                    $masonry.masonry('layout');
+                });
+            }
+    
+            // Load images only when they appear in viewport
+            function setupLazyLoading() {
+                if ('IntersectionObserver' in window) {
+                    const imageObserver = new IntersectionObserver((entries, observer) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                const img = entry.target;
+                                // Only process images with data-src attribute
+                                if (img.dataset.src) {
+                                    img.src = img.dataset.src;
+                                    img.onload = () => {
+                                        img.removeAttribute('data-src');
+                                        // Notify masonry that this image is loaded
+                                        $('.gallery').masonry('layout');
+                                    };
+                                    observer.unobserve(img);
+                                }
+                            }
+                        });
+                    }, {
+                        rootMargin: '200px 0px'  // Start loading when image is 200px from viewport
+                    });
+                    
+                    document.querySelectorAll('#randomness img[data-src]').forEach(img => {
+                        imageObserver.observe(img);
+                    });
+                } else {
+                    // Fallback for browsers without IntersectionObserver
+                    document.querySelectorAll('#randomness img[data-src]').forEach(img => {
+                        img.src = img.dataset.src;
+                    });
+                }
+            }
+    
+            // Load the next batch of images
+            function loadNextBatch() {
+                if (galleryState.loading || galleryState.allLoaded) return;
+                
+                galleryState.loading = true;
+                document.getElementById('gallery-loading-indicator').style.display = 'block';
+                
+                // Simulate a small delay to show loading (can be removed in production)
+                setTimeout(() => {
+                    const nextBatch = galleryState.allImages.slice(
+                        galleryState.currentIndex, 
+                        galleryState.currentIndex + galleryState.batchSize
+                    );
+                    
+                    if (nextBatch.length > 0) {
+                        appendGalleryItems(nextBatch);
+                        galleryState.currentIndex += nextBatch.length;
+                        
+                        // Check if we've loaded all images
+                        if (galleryState.currentIndex >= galleryState.allImages.length) {
+                            galleryState.allLoaded = true;
+                            document.getElementById('gallery-loading-indicator').innerHTML = '<p>All images loaded</p>';
+                            // Remove the scroll event listener when all images are loaded
+                            window.removeEventListener('scroll', scrollHandler);
+                        }
+                    } else {
+                        galleryState.allLoaded = true;
+                        document.getElementById('gallery-loading-indicator').innerHTML = '<p>All images loaded</p>';
+                    }
+                    
+                    galleryState.loading = false;
+                    document.getElementById('gallery-loading-indicator').style.display = galleryState.allLoaded ? 'block' : 'none';
+                }, 300);
+            }
+    
+            // Check if we need to load more images based on scroll position
+            function scrollHandler() {
+                if (galleryState.loading || galleryState.allLoaded) return;
+                
+                const scrollHeight = document.documentElement.scrollHeight;
+                const scrollTop = window.scrollY || document.documentElement.scrollTop;
+                const clientHeight = document.documentElement.clientHeight;
+                
+                // Calculate scroll percentage (0 to 1)
+                const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
+                
+                // Load more when user has scrolled past the trigger point
+                if (scrollPercentage > galleryState.scrollTriggerPoint) {
+                    loadNextBatch();
+                }
+            }
+    
+            // Initialize the gallery
+            function initGallery() {
+                // Add scroll event listener for infinite scroll
+                window.addEventListener('scroll', scrollHandler);
+                
+                // Fetch all image data
+                fetch('https://cdn.cleone.id/gallery.json')
+                    .then(response => response.json())
+                    .then(data => {
+                        // Sort data in descending order (by timestamp if available)
+                        galleryState.allImages = data.sort((a, b) => {
+                            return (b.timestamp || 0) - (a.timestamp || 0);
+                        });
+                        
+                        // Load the first batch
+                        loadNextBatch();
+                    })
+                    .catch(error => {
+                        console.error("Failed to load gallery:", error);
+                        document.getElementById('gallery-loading-indicator').innerHTML = '<p>Error loading images. Please try again later.</p>';
+                        document.getElementById('gallery-loading-indicator').style.display = 'block';
+                    });
+            }
+    
+            // Run initialization when DOM is ready
+            document.addEventListener('DOMContentLoaded', initGallery);
         </script>
       </div>
       <script>
